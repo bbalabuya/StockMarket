@@ -4,3 +4,7 @@ __pycache__.zip
 robots.txt
 logo.svg
 public.zip
+token/
+token.json
+__pycache__/
+stock.cpython-313.pyc
