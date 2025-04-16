@@ -1,44 +1,28 @@
-import requests
-from fastapi import FastAPI, Query
-from fastapi.middleware.cors import CORSMiddleware
+import os, json, time, requests
 from datetime import datetime
-from utils.token_manager import ensure_token
-import os
+from fastapi import APIRouter, Query
+from auth import get_access_token
 
-APP_KEY = os.getenv("APP_KEY")
-APP_SECRET = os.getenv("APP_SECRET")
+router = APIRouter()
 
-app = FastAPI()
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/stock/time-conclusion")
+@router.get("/stock/time-conclusion")
 def get_multiple_stock_conclusions(iscd: str = Query(...)):
-    ACCESS_TOKEN = ensure_token()
+    access_token = get_access_token()
     url = "https://openapi.koreainvestment.com:9443/uapi/domestic-stock/v1/quotations/inquire-time-itemconclusion"
     headers = {
         "Content-Type": "application/json; charset=utf-8",
-        "authorization": f"Bearer {ACCESS_TOKEN}",
-        "appkey": APP_KEY,
-        "appsecret": APP_SECRET,
+        "authorization": f"Bearer {access_token}",
+        "appkey": os.getenv("APP_KEY"),
+        "appsecret": os.getenv("APP_SECRET"),
         "tr_id": "FHPST01060000",
         "custtype": "P"
     }
-
     now = datetime.now()
     hour = now.hour
     minute = now.minute
     rounded_minute = (minute // 15) * 15
-
     const_max_hour = 15
     const_max_min = 30
-
     times = []
     for h in range(9, min(hour, const_max_hour) + 1):
         for m in [0, 15, 30, 45]:
@@ -48,8 +32,8 @@ def get_multiple_stock_conclusions(iscd: str = Query(...)):
                 break
             t = f"{h:02d}{m:02d}00"
             times.append(t)
-
-    data_list = []
+    data_map = {}
+    log_list = []
     for t in times:
         params = {
             "fid_cond_mrkt_div_code": "J",
@@ -69,16 +53,36 @@ def get_multiple_stock_conclusions(iscd: str = Query(...)):
                 prdy_ctrt = float(last_item["prdy_ctrt"]) if last_item.get("prdy_ctrt") else None
                 volume_str = last_item.get("acml_vol", "")
                 volume = int(volume_str.replace(",", "")) if volume_str else None
-
-                data_list.append({
-                    "time": t,
+                log_str = (
+                    f"{t[:2]}:{t[2:4]} - "
+                    f"prdy_ctrt: {prdy_ctrt}, "
+                    f"prdy_sign: {prdy_sign}, "
+                    f"prdy_vrss: {prdy_vrss}, "
+                    f"price: {price}, "
+                    f"volume: {volume}"
+                )
+                log_list.append(log_str)
+                data_map[t] = {
                     "price": price,
                     "prdy_vrss": prdy_vrss,
                     "prdy_sign": prdy_sign,
                     "prdy_ctrt": prdy_ctrt,
                     "volume": volume
-                })
-        except requests.exceptions.RequestException:
+                }
+        except requests.exceptions.RequestException as e:
+            print(f"❌ 요청 실패 ({t}): {e}")
             continue
-
-    return {"data": data_list}
+    if log_list:
+        print("[REST] 최종 데이터 요약:")
+        print("\n".join(log_list))
+    sorted_data = []
+    for key in sorted(data_map.keys()):
+        sorted_data.append({
+            "time": key,
+            "price": data_map[key]["price"],
+            "prdy_vrss": data_map[key]["prdy_vrss"],
+            "prdy_sign": data_map[key]["prdy_sign"],
+            "prdy_ctrt": data_map[key]["prdy_ctrt"],
+            "volume": data_map[key]["volume"]
+        })
+    return {"data": sorted_data}

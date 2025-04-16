@@ -8,3 +8,4 @@ token/
 token.json
 __pycache__/
 stock.cpython-313.pyc
+__pycache__

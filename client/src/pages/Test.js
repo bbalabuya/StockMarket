@@ -17,16 +17,6 @@ const getSignSymbolFromVrss = (vrss) => {
   return "–";
 };
 
-// Card 컴포넌트 (대체)
-const Card = ({ children, className }) => (
-  <div className={`bg-white border rounded-xl p-4 ${className}`}>
-    {children}
-  </div>
-);
-const CardContent = ({ children, className }) => (
-  <div className={`${className}`}>{children}</div>
-);
-
 export default function Test() {
   const [wsPrice, setWsPrice] = useState(null); // 웹소켓에서 받아온 실시간 가격
   const [chartData, setChartData] = useState([]); // REST API에서 가져온 체결 데이터
