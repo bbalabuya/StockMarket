@@ -1,3 +1,4 @@
+#rest_api
 import os, json, time, requests
 from datetime import datetime
 from fastapi import APIRouter, Query
@@ -8,6 +9,7 @@ router = APIRouter()
 @router.get("/stock/time-conclusion")
 def get_multiple_stock_conclusions(iscd: str = Query(...)):
     # 1) 환경변수에서 토큰과 타임스탬프 읽기
+    print(iscd + " 시간확인 중입니다")
     access_token = os.getenv("ACCESS_TOKEN")
     token_ts = os.getenv("TOKEN_TIMESTAMP")
 

@@ -34,7 +34,20 @@ const ChartComponent = ({ chartData }) => {
         margin={{ top: 40, right: 50, left: 10, bottom: 40 }}
       >
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="time" tick={{ fontSize: 12 }} />
+        <XAxis
+          dataKey="time"
+          tick={{ fontSize: 12 }}
+          tickFormatter={(time) => {
+            // 예: "091500" → "09:15"
+            if (time.length === 6) {
+              const hour = time.slice(0, 2);
+              const minute = time.slice(2, 4);
+              return `${hour}:${minute}`;
+            }
+            return time;
+          }}
+        />
+
         <YAxis
           yAxisId="left"
           domain={[yMin, yMax]}
