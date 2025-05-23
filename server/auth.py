@@ -1,12 +1,16 @@
-# auth.py
-import os, time, requests
+import os
+import time
+import requests
 from dotenv import load_dotenv, set_key
 
-ENV_PATH = ".env"
-load_dotenv(dotenv_path=ENV_PATH)
-
+# 환경변수 로딩
+load_dotenv()
 APP_KEY = os.getenv("APP_KEY")
 APP_SECRET = os.getenv("APP_SECRET")
+ENV_PATH = ".env"
+
+def getappkey():
+    return (APP_KEY, APP_SECRET)
 
 def token_expired(token_timestamp_str: str) -> bool:
     try:
@@ -16,13 +20,17 @@ def token_expired(token_timestamp_str: str) -> bool:
     return time.time() - token_timestamp > 86400
 
 def get_access_token():
+    """
+    ACCESS_TOKEN이 존재하고 유효하면 그대로 반환하고,
+    없거나 만료시에는 새 토큰 발급 후 .env 파일 업데이트
+    """
     ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
     TOKEN_TIMESTAMP = os.getenv("TOKEN_TIMESTAMP")
-
+    
     if ACCESS_TOKEN and TOKEN_TIMESTAMP and not token_expired(TOKEN_TIMESTAMP):
-        print(f"✅ 기존 access_token 사용: {ACCESS_TOKEN}")
+        print(f"✅ 기존 access_token을 사용합니다")
         return ACCESS_TOKEN
-
+    
     url = "https://openapi.koreainvestment.com:9443/oauth2/tokenP"
     headers = {"Content-Type": "application/json"}
     data = {
@@ -42,18 +50,10 @@ def get_access_token():
     else:
         raise Exception(f"access_token 발급 실패: {response.text}")
 
-def get_auth_headers() -> dict:
-    access_token = get_access_token()
-    return {
-        "Content-Type": "application/json; charset=utf-8",
-        "authorization": f"Bearer {access_token}",
-        "appkey": APP_KEY,
-        "appsecret": APP_SECRET,
-        "tr_id": "FHPST01060000",
-        "custtype": "P"
-    }
-
 def issue_approval_key():
+    """
+    approval_key는 WebSocket 연결 시 매번 새로 발급해야 함.
+    """
     url = "https://openapi.koreainvestment.com:9443/oauth2/Approval"
     headers = {"Content-Type": "application/json"}
     data = {
@@ -66,26 +66,7 @@ def issue_approval_key():
         approval_key = response.json().get("approval_key")
         if not approval_key:
             raise Exception("approval_key 응답에 없음")
-        print(f"✅ approval_key 발급 완료: {approval_key}")
+        print(f"🆕 approval_key 새로 발급: {approval_key}")
         return approval_key
     else:
         raise Exception(f"approval_key 발급 실패: {response.text}")
-
-def create_ws_subscribe_message(ticker: str) -> dict:
-    """외부 WebSocket 서버에 보낼 메시지를 구성"""
-    approval_key = issue_approval_key()
-    print(f"🪪 approval_key 발급 및 메시지 구성 완료")
-    return {
-        "header": {
-            "approval_key": approval_key,
-            "custtype": "P",
-            "tr_type": "1",
-            "content-type": "utf-8"
-        },
-        "body": {
-            "input": {
-                "tr_id": "H0STCNT0",
-                "tr_key": ticker
-            }
-        }
-    }

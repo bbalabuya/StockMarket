@@ -26,48 +26,69 @@ const DataTable = ({ chartData }) => {
       >
         <thead>
           <tr style={{ backgroundColor: "#f0f0f0" }}>
-            {["시간", "체결가", "전일 대비", "기호", "등락률", "거래량"].map(
-              (label, idx) => (
-                <th
-                  key={idx}
-                  style={{
-                    border: "1px solid #ccc",
-                    padding: "8px",
-                    textAlign: "center",
-                    fontWeight: "600",
-                    fontSize: "14px",
-                  }}
-                >
-                  {label}
-                </th>
-              )
-            )}
+            {[
+              "시간",
+              "체결가",
+              "전일 대비",
+              "기호",
+              "등락률",
+              "거래량",
+              "개별 거래량",
+            ].map((label, idx) => (
+              <th
+                key={idx}
+                style={{
+                  border: "1px solid #ccc",
+                  padding: "8px",
+                  textAlign: "center",
+                  fontWeight: "600",
+                  fontSize: "14px",
+                }}
+              >
+                {label}
+              </th>
+            ))}
           </tr>
         </thead>
         <tbody>
-          {chartData.map((item, idx) => (
-            <tr
-              key={idx}
-              style={{
-                backgroundColor: idx % 2 === 0 ? "#fff" : "#f9f9f9",
-                transition: "background 0.2s",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "#e8f0ff")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor =
-                  idx % 2 === 0 ? "#fff" : "#f9f9f9")
-              }
-            >
-              <td style={tdStyle}>{item.time}</td>
-              <td style={tdStyle}>{item.price?.toLocaleString()}</td>
-              <td style={tdStyle}>{Number(item.prdy_vrss).toLocaleString()}</td>
-              <td style={tdStyle}>{getSignSymbolFromVrss(item.prdy_vrss)}</td>
-              <td style={tdStyle}>{Number(item.prdy_ctrt).toFixed(2)}%</td>
-              <td style={tdStyle}>{item.volume?.toLocaleString()}</td>
-            </tr>
-          ))}
+          {chartData.map((item, idx) => {
+            const prevVolume = idx > 0 ? Number(chartData[idx - 1].volume) : 0;
+            const currentVolume = Number(item.volume);
+            const deltaVolume = currentVolume - prevVolume;
+
+            return (
+              <tr
+                key={idx}
+                style={{
+                  backgroundColor: idx % 2 === 0 ? "#fff" : "#f9f9f9",
+                  transition: "background 0.2s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.backgroundColor = "#e8f0ff")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.backgroundColor =
+                    idx % 2 === 0 ? "#fff" : "#f9f9f9")
+                }
+              >
+                <td style={tdStyle}>{item.time}</td>
+                <td style={tdStyle}>{item.price?.toLocaleString()}</td>
+                <td style={tdStyle}>
+                  {Number(item.prdy_vrss).toLocaleString()}
+                </td>
+                <td style={tdStyle}>{getSignSymbolFromVrss(item.prdy_vrss)}</td>
+                <td style={tdStyle}>{Number(item.prdy_ctrt).toFixed(2)}%</td>
+                <td style={tdStyle}>{currentVolume.toLocaleString()}</td>
+                <td style={tdStyle}>
+                  {idx === 0
+                    ? "—"
+                    : deltaVolume >= 0
+                    ? deltaVolume.toLocaleString()
+                    : "0"}
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
