@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from time_conclusion import router as time_router
 from per_pbr import router as per_pbr
 from index import router as index
+from index_naver import router as index_naver
 from findStockCode import router as search_code
 from websocket import router as websocket_router  # ✅ 추가
 
@@ -38,12 +39,11 @@ app.include_router(per_pbr)
 #-------------------------
 # 코스피 코스닥 index
 app.include_router(index)
+app.include_router(index_naver)
 
 #--------------------
 #종목 코드 찾아주기
-print("라우터 등록 시작")
 app.include_router(search_code)
-print("라우터 등록 완료")
 
 # --------------------------------------------------
 # 애플리케이션 실행

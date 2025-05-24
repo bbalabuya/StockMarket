@@ -1,7 +1,7 @@
 import React from "react";
 import DataTable from "./dataTable";
 
-export default function DataSection({ stockInfo, chartData }) {
+export default function DataSection({ stockInfo }) {
   const isLoading = !stockInfo;
 
   return (
@@ -29,7 +29,6 @@ export default function DataSection({ stockInfo, chartData }) {
       </div>
 
       <h3 style={{ marginTop: 40, textAlign: "center" }}>데이터 확인</h3>
-      <DataTable chartData={chartData} />
     </>
   );
 }

@@ -1,8 +1,9 @@
+// src/pages/StockHeader.js
 import { getSignSymbolFromVrss } from "../marketUtils";
 
 export default function StockHeader({
   stockCode,
-  stockName, // ★ 추가
+  stockName,
   currentPrice,
   priceLabel,
   changeAmount,
@@ -18,10 +19,7 @@ export default function StockHeader({
   return (
     <div style={{ marginBottom: 20, display: "flex", alignItems: "flex-end" }}>
       <div style={{ fontSize: 22, fontWeight: "bold", marginRight: 10 }}>
-        {/* 종목코드 + 종목이름 같이 보여주기 */}
-        {stockName
-          ? `${stockName} (${stockCode})`
-          : `종목코드 ${stockCode}`}{" "}
+        {stockName ? `${stockName} (${stockCode})` : `종목코드 ${stockCode}`}{" "}
         {currentPrice.toLocaleString()}원 ({priceLabel})
       </div>
       <div style={{ color: changeColor, fontSize: 18, fontWeight: "bold" }}>
