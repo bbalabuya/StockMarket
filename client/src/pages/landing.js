@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 const Landing = () => {
   const [indexData, setIndexData] = useState(null);
   const [error, setError] = useState("");
-  const [stockCode, setStockCode] = useState("");
+  const [companyName, setCompanyName] = useState(""); // 종목명 입력
   const navigate = useNavigate();
 
   const fetchKoreaIndex = async () => {
@@ -24,10 +24,29 @@ const Landing = () => {
     fetchKoreaIndex();
   }, []);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (stockCode.trim()) {
-      navigate(`/stockinfo?code=${stockCode.trim()}`);
+    if (!companyName.trim()) return;
+
+    try {
+      const response = await fetch(
+        `http://localhost:8000/search-code?name=${encodeURIComponent(
+          companyName
+        )}`
+      );
+      const data = await response.json();
+      console.log("✅ 서버 응답:", data);
+
+      if (data.matches && data.matches.length > 0) {
+        // 첫 번째 종목 코드 사용
+        ////////페이지 이동
+        navigate(`/stockinfo?code=${data.matches[0].Code}`);
+        //////////////////
+      } else {
+        setError("종목을 찾을 수 없습니다.");
+      }
+    } catch (err) {
+      setError("종목 코드 검색 중 오류 발생");
     }
   };
 
@@ -49,14 +68,14 @@ const Landing = () => {
         <p>로딩 중...</p>
       )}
 
-      {/* 종목코드 입력 폼 */}
+      {/* 종목명 입력 폼 */}
       <form onSubmit={handleSubmit} style={{ marginTop: "40px" }}>
-        <h3>🔍 종목 코드로 상세정보 보기</h3>
+        <h3>🔍 회사 이름으로 종목 조회</h3>
         <input
           type="text"
-          value={stockCode}
-          onChange={(e) => setStockCode(e.target.value)}
-          placeholder="예: 005930 (삼성전자)"
+          value={companyName}
+          onChange={(e) => setCompanyName(e.target.value)}
+          placeholder="예: 삼성전자"
           style={{ padding: "8px", width: "200px" }}
         />
         <button

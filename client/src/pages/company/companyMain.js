@@ -4,6 +4,7 @@ import StockHeader from "./StockHeader";
 import ChartArea from "./ChartArea";
 import DataSection from "./DataSection";
 import useStockData from "../useStockData";
+import { handleSubmit } from "../findStockCode";
 
 export default function CompanyMain() {
   const params = new URLSearchParams(window.location.search);
@@ -37,70 +38,24 @@ export default function CompanyMain() {
 
   const priceLabel = marketOpen ? "현재가" : "마감가";
 
-  const onSearch = () => {
-    if (!inputCode.trim()) return;
-    setStockCode(inputCode.trim());
-  };
+  // CompanyMain.js 내부
+  const onSearch = async (e) => {
+    if (e && e.preventDefault) e.preventDefault(); // ✅ 여기에서만 이벤트 방지 처리
 
-  const sampleChartData = [
-    { time: "090000", price: 70300, prdy_vrss: 0, prdy_ctrt: 0.0, volume: 150 },
-    {
-      time: "090100",
-      price: 70500,
-      prdy_vrss: 200,
-      prdy_ctrt: 0.28,
-      volume: 300,
-    },
-    {
-      time: "090200",
-      price: 70800,
-      prdy_vrss: 500,
-      prdy_ctrt: 0.71,
-      volume: 250,
-    },
-    {
-      time: "090300",
-      price: 70600,
-      prdy_vrss: 300,
-      prdy_ctrt: 0.42,
-      volume: 200,
-    },
-    {
-      time: "090400",
-      price: 70700,
-      prdy_vrss: 400,
-      prdy_ctrt: 0.57,
-      volume: 180,
-    },
-    {
-      time: "090500",
-      price: 70900,
-      prdy_vrss: 600,
-      prdy_ctrt: 0.85,
-      volume: 220,
-    },
-    {
-      time: "090600",
-      price: 71100,
-      prdy_vrss: 800,
-      prdy_ctrt: 1.14,
-      volume: 190,
-    },
-    {
-      time: "090700",
-      price: 71000,
-      prdy_vrss: 700,
-      prdy_ctrt: 1.0,
-      volume: 160,
-    },
-    {
-      time: "090800",
-      price: 71200,
-      prdy_vrss: 900,
-      prdy_ctrt: 1.28,
-      volume: 230,
-    },
-  ];
+    if (!inputCode.trim()) return;
+
+    const code = await handleSubmit(inputCode);
+
+    if (code) {
+      setStockCode(code);
+      setInputCode(code);
+      const url = new URL(window.location);
+      url.searchParams.set("code", code);
+      window.history.pushState({}, "", url);
+    } else {
+      alert("종목을 찾을 수 없습니다.");
+    }
+  };
 
   return (
     <div style={{ width: "100%", padding: 20, boxSizing: "border-box" }}>
