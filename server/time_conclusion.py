@@ -80,12 +80,12 @@ def get_multiple_stock_conclusions(iscd: str = Query(...)):
         {"time": k, **v}
         for k, v in sorted(data_map.items())
     ]
-
-    # 데이터가 없으면 샘플 데이터 반환
+    #----------------------------------------------
+    # 데이터가 없으면 샘플 데이터 반환하도록 임시설계
+    #----------------------------------------------
     if not sorted_data:
         sorted_data = sampleChartData
 
-    print("받은 데이터: {}".format(sorted_data))
     return {
         "ticker": iscd,
         "data": sorted_data,

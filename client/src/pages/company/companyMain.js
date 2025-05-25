@@ -8,6 +8,8 @@ import DataSection from "./DataSection";
 import useStockData from "../useStockData";
 import { getStockCode } from "../findStockCode";
 import DataTable from "./dataTable";
+import Call_index from "../call_index";
+import Offer from "./Offer";
 
 export default function CompanyMain() {
   const params = new URLSearchParams(window.location.search);
@@ -28,6 +30,7 @@ export default function CompanyMain() {
     stockInfo,
     marketOpen,
   } = useStockData(stockCode);
+  // 필요한 데이터 useStockData.js에 한번에 불러와 뿌리기기
 
   if (!chartData.length) return <div>📉 데이터를 불러오는 중입니다...</div>;
 
@@ -36,12 +39,18 @@ export default function CompanyMain() {
       ? Number(wsPrice)
       : chartData[chartData.length - 1].price;
 
+  const setAmount =
+    marketOpen && wsPrice != null
+      ? Number(changeAmount)
+      : chartData[chartData.length - 1].prdy_vrss;
+
+  const setRate =
+    marketOpen && wsPrice != null
+      ? Number(changeRate)
+      : chartData[chartData.length - 1].prdy_ctrt;
+
   const changeColor =
-    Number(changeAmount) > 0
-      ? "red"
-      : Number(changeAmount) < 0
-      ? "blue"
-      : "gray";
+    Number(setAmount) > 0 ? "red" : Number(setAmount) < 0 ? "blue" : "gray";
 
   const priceLabel = marketOpen ? "현재가" : "마감가";
 
@@ -49,7 +58,7 @@ export default function CompanyMain() {
     if (e && e.preventDefault) e.preventDefault();
     if (!inputCode.trim()) return;
 
-    const code = await getStockCode(inputCode);
+    const code = await getStockCode(inputCode); // 종목코드 불러오고 업데이트트
     if (code) {
       setStockCode(code);
       setCompanyName(inputCode); // ✅ 입력한 회사명을 상태로 반영
@@ -74,12 +83,14 @@ export default function CompanyMain() {
         stockName={companyName} // ✅ 업데이트된 회사명 전달
         currentPrice={currentPrice}
         priceLabel={priceLabel}
-        changeAmount={changeAmount}
-        changeRate={changeRate}
+        changeAmount={setAmount}
+        changeRate={setRate}
         changeColor={changeColor}
       />
       <ChartArea chartData={chartData} priceLabel={priceLabel} />
       <DataSection stockInfo={stockInfo} />
+      <Offer stockCode={stockCode} />
+      <Call_index />
       <DataTable chartData={chartData} />
     </div>
   );

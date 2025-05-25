@@ -6,8 +6,8 @@ from per_pbr import router as per_pbr
 from index import router as index
 from index_naver import router as index_naver
 from findStockCode import router as search_code
-from websocket import router as websocket_router  # ✅ 추가
-
+from ws_price import router as websocket_price  # ✅ 추가
+from ws_offer import router as websocket_offer
 
 app = FastAPI()
 
@@ -23,8 +23,8 @@ app.add_middleware(
 # --------------------------------------------------
 # [WebSocket 엔드포인트 및 처리 함수]
 # --------------------------------------------------
-app.include_router(websocket_router)  # ✅ WebSocket 라우터 등록
-
+app.include_router(websocket_price)  # ✅ WebSocket 라우터 등록
+app.include_router(websocket_offer)
 
 # --------------------------------------------------
 # [REST API 엔드포인트: 체결 데이터 조회]

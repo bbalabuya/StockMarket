@@ -28,7 +28,6 @@ const Landing = () => {
 
   return (
     <div style={{ padding: "20px" }}>
-      <Call_index />
       <h2>📈 코스피 지수 정보</h2>
 
       {error && <p style={{ color: "red" }}>{error}</p>}
