@@ -1,15 +1,18 @@
 // src/pages/CompanyMain.js
+
 import React, { useState } from "react";
 import { useLocation } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import StockHeader from "./StockHeader";
 import ChartArea from "./ChartArea";
 import DataSection from "./DataSection";
-import useStockData from "../useStockData";
-import { getStockCode } from "../findStockCode";
 import DataTable from "./dataTable";
 import Call_index from "../call_index";
 import Offer from "./Offer";
+import { getStockCode } from "../findStockCode";
+
+import useStockRest from "../RestCall";
+import useStockWS from "../WSCall";
 
 export default function CompanyMain() {
   const params = new URLSearchParams(window.location.search);
@@ -18,36 +21,32 @@ export default function CompanyMain() {
   const initialCompanyName = location.state?.companyName || "";
 
   const [stockCode, setStockCode] = useState(initial);
-  const [companyName, setCompanyName] = useState(initialCompanyName); // ✅ 상태로 관리
+  const [companyName, setCompanyName] = useState(initialCompanyName);
   const [inputCode, setInputCode] = useState(initialCompanyName || initial);
 
-  const {
-    chartData,
-    wsPrice,
-    changeAmount,
-    changeRate,
-    prevClose,
-    stockInfo,
-    marketOpen,
-  } = useStockData(stockCode);
-  // 필요한 데이터 useStockData.js에 한번에 불러와 뿌리기기
+  // REST API 데이터
+  const { chartData, prevClose, stockInfo, marketOpen } =
+    useStockRest(stockCode);
+
+  // WebSocket 실시간 데이터
+  const { wsPrice, changeAmount, changeRate } = useStockWS(stockCode);
 
   if (!chartData.length) return <div>📉 데이터를 불러오는 중입니다...</div>;
 
   const currentPrice =
     marketOpen && wsPrice != null
       ? Number(wsPrice)
-      : chartData[chartData.length - 1].price;
+      : chartData[chartData.length - 1]?.price ?? null;
 
   const setAmount =
-    marketOpen && wsPrice != null
+    marketOpen && changeAmount != null
       ? Number(changeAmount)
-      : chartData[chartData.length - 1].prdy_vrss;
+      : chartData[chartData.length - 1]?.prdy_vrss ?? null;
 
   const setRate =
-    marketOpen && wsPrice != null
+    marketOpen && changeRate != null
       ? Number(changeRate)
-      : chartData[chartData.length - 1].prdy_ctrt;
+      : chartData[chartData.length - 1]?.prdy_ctrt ?? null;
 
   const changeColor =
     Number(setAmount) > 0 ? "red" : Number(setAmount) < 0 ? "blue" : "gray";
@@ -58,10 +57,10 @@ export default function CompanyMain() {
     if (e && e.preventDefault) e.preventDefault();
     if (!inputCode.trim()) return;
 
-    const code = await getStockCode(inputCode); // 종목코드 불러오고 업데이트트
+    const code = await getStockCode(inputCode);
     if (code) {
       setStockCode(code);
-      setCompanyName(inputCode); // ✅ 입력한 회사명을 상태로 반영
+      setCompanyName(inputCode);
       const url = new URL(window.location);
       url.searchParams.set("code", code);
       window.history.pushState({}, "", url);
@@ -80,7 +79,7 @@ export default function CompanyMain() {
       />
       <StockHeader
         stockCode={stockCode}
-        stockName={companyName} // ✅ 업데이트된 회사명 전달
+        stockName={companyName}
         currentPrice={currentPrice}
         priceLabel={priceLabel}
         changeAmount={setAmount}

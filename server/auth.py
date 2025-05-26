@@ -9,7 +9,8 @@ load_dotenv()
 APP_KEY = os.getenv("APP_KEY")
 APP_SECRET = os.getenv("APP_SECRET")
 ENV_PATH = ".env"
-LOCK_PATH = ".access_token.lock"  # 락 파일 경로
+ACCESS_TOKEN_LOCK = ".access_token.lock"
+APPROVAL_KEY_LOCK = ".approval_key.lock"
 
 def getappkey():
     return (APP_KEY, APP_SECRET)
@@ -26,7 +27,7 @@ def get_access_token():
     ACCESS_TOKEN이 존재하고 유효하면 그대로 반환하고,
     없거나 만료시에는 새 토큰 발급 후 .env 파일 업데이트
     """
-    with FileLock(LOCK_PATH):
+    with FileLock(ACCESS_TOKEN_LOCK):
         ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
         TOKEN_TIMESTAMP = os.getenv("TOKEN_TIMESTAMP")
 
@@ -55,21 +56,24 @@ def get_access_token():
 
 def issue_approval_key():
     """
-    approval_key는 WebSocket 연결 시 매번 새로 발급해야 함.
+    approval_key는 WebSocket 연결 시 매번 새로 발급해야 하므로
+    중복 호출 방지를 위해 filelock 적용.
     """
-    url = "https://openapi.koreainvestment.com:9443/oauth2/Approval"
-    headers = {"Content-Type": "application/json"}
-    data = {
-        "grant_type": "client_credentials",
-        "appkey": APP_KEY,
-        "secretkey": APP_SECRET
-    }
-    response = requests.post(url, headers=headers, json=data)
-    if response.status_code == 200:
-        approval_key = response.json().get("approval_key")
-        if not approval_key:
-            raise Exception("approval_key 응답에 없음")
-        print(f"🆕 approval_key 새로 발급: {approval_key}")
-        return approval_key
-    else:
-        raise Exception(f"approval_key 발급 실패: {response.text}")
+    with FileLock(APPROVAL_KEY_LOCK):
+        url = "https://openapi.koreainvestment.com:9443/oauth2/Approval"
+        headers = {"Content-Type": "application/json"}
+        data = {
+            "grant_type": "client_credentials",
+            "appkey": APP_KEY,
+            "secretkey": APP_SECRET
+        }
+        response = requests.post(url, headers=headers, json=data)
+        if response.status_code == 200:
+            approval_key = response.json().get("approval_key")
+            if not approval_key:
+                raise Exception("approval_key 응답에 없음")
+            print(f"🆕 approval_key 새로 발급: {approval_key}")
+            time.sleep(3)
+            return approval_key
+        else:
+            raise Exception(f"approval_key 발급 실패: {response.text}")

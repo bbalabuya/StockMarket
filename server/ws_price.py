@@ -12,7 +12,7 @@ async def connect_stock_ws_and_relay(websocket: WebSocket, ticker="005930"):
     await websocket.accept()
     try:
         approval_key = issue_approval_key()
-        print(f"🪪 approval_key 받음: {approval_key}")
+        print(f"🪪 price_approval_key 받음: {approval_key}")
 
         msg = {
             "header": {
@@ -32,18 +32,15 @@ async def connect_stock_ws_and_relay(websocket: WebSocket, ticker="005930"):
         REAL_WS_URL = "ws://ops.koreainvestment.com:21000"
         async with ws_connect(REAL_WS_URL, ping_interval=None) as ws:
             await ws.send(json.dumps(msg))
-            print("🟢 외부 WebSocket으로 체결 요청 전송:")
-            print(json.dumps(msg, indent=2))
+            print("🟢 PRICE 체결 요청 전송됨")
 
             while True:
                 recv_data = await ws.recv()
-                print("📨 [WS] PRICE 수신 데이터:")
-                try:
-                    parsed = json.loads(recv_data)
-                    print(json.dumps(parsed, indent=2))
-                except Exception:
-                    print(recv_data)
 
+                # ✅ 수신 중임을 로그로만 출력
+                print("📨 PRICE 데이터 수신 중")
+
+                # 그대로 프런트로 전달 (내용 파싱 X)
                 await websocket.send_text(recv_data)
 
     except Exception as e:

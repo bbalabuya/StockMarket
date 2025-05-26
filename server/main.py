@@ -8,6 +8,7 @@ from index_naver import router as index_naver
 from findStockCode import router as search_code
 from ws_price import router as websocket_price  # ✅ 추가
 from ws_offer import router as websocket_offer
+from ws_all import router as websocket_all
 
 app = FastAPI()
 
@@ -25,6 +26,8 @@ app.add_middleware(
 # --------------------------------------------------
 app.include_router(websocket_price)  # ✅ WebSocket 라우터 등록
 app.include_router(websocket_offer)
+app.include_router(websocket_all)
+
 
 # --------------------------------------------------
 # [REST API 엔드포인트: 체결 데이터 조회]

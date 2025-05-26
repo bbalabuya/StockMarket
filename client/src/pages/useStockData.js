@@ -1,3 +1,4 @@
+//실시간 체결가 + restAPI
 import { useState, useEffect } from "react";
 import { isMarketOpen } from "./marketUtils";
 
