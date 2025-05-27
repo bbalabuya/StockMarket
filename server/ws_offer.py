@@ -44,7 +44,7 @@ async def connect_offer_ws_and_relay(client_ws: WebSocket, ticker: str):
 
                 # 실데이터 패킷만 처리
                 if recv_data and recv_data[0] in ("0", "1"):
-                    print("📨 데이터 수신 중")  # ✅ 데이터 수신 로그만 출력
+                    print("📨호가 데이터 수신 중")  # ✅ 데이터 수신 로그만 출력
 
                     parts = recv_data.split("|")
                     if len(parts) < 4:

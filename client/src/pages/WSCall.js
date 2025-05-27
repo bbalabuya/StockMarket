@@ -1,44 +1,60 @@
-// src/hooks/useStockWS.js
+// src/WSCall.js
 import { useState, useEffect } from "react";
 import { isMarketOpen } from "./marketUtils";
 
-const WS_URL = (code) => `ws://localhost:8000/ws?code=${code}`;
-
 export default function useStockWS(stockCode) {
-  const [wsPrice, setWsPrice] = useState(null);
-  const [changeAmount, setChangeAmount] = useState(null);
-  const [changeRate, setChangeRate] = useState(null);
-
-  const marketOpen = isMarketOpen();
+  const [price, setPrice] = useState(null); // 체결가
+  const [changeAmount, setChangeAmount] = useState(null); // 전일 대비 금액
+  const [changeRate, setChangeRate] = useState(null); // 전일 대비 비율
+  const [offer, setOffer] = useState(null); // 호가
 
   useEffect(() => {
-    if (!marketOpen) {
+    if (
+      !stockCode
+      //|| !isMarketOpen()
+    )
       return;
-    }
 
-    const ws = new WebSocket(WS_URL(stockCode));
-    ws.onopen = () => console.log("WS 연결됨:", stockCode);
-    ws.onmessage = (e) => {
-      const d = e.data;
-      if (d.includes("PINGPONG")) return;
-      const parts = d.split("|");
-      if (parts.length < 4) return;
-      const fields = parts[3].split("^");
+    const ws = new WebSocket(`ws://localhost:8000/ws/all?code=${stockCode}`);
 
-      setWsPrice(fields[2]);
-      setChangeAmount(fields[4]);
-      setChangeRate(fields[5]);
+    ws.onopen = () => {
+      console.log("📡 WebSocket 연결 완료 (/ws/all)");
     };
-    ws.onerror = (e) => console.error("WS 오류:", e);
-    ws.onclose = () => console.log("WS 닫힘:", stockCode);
+
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        const { tr_id, output } = data;
+
+        if (tr_id === "H0STCNT0") {
+          // 체결가 데이터 처리리
+          console.log("체결가 데이터 받아옴");
+          const parts = output.split("^");
+          const price = parts[2]; // 현재가
+          const changeAmt = parts[4]; // 전일 대비 금액
+          const changeRt = parts[5]; // 전일 대비 비율
+          console.log(price, changeAmt, changeRt);
+
+          setPrice(price);
+          setChangeAmount(changeAmt);
+          setChangeRate(changeRt);
+        }
+
+        if (tr_id === "H0STASP0") {
+          // 호가 데이터 (백에서 처리리)
+          console.log("호가 데이터 받아옴");
+          setOffer(output);
+        }
+      } catch (err) {
+        console.error("❌ WebSocket 수신 오류:", err);
+      }
+    };
+
+    ws.onerror = (e) => console.error("❌ WebSocket 에러:", e);
+    ws.onclose = () => console.log("🔌 WebSocket 종료");
 
     return () => ws.close();
-  }, [stockCode, marketOpen]);
+  }, [stockCode]);
 
-  return {
-    wsPrice,
-    changeAmount,
-    changeRate,
-    marketOpen,
-  };
+  return { price, changeAmount, changeRate, offer };
 }

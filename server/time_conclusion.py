@@ -9,19 +9,6 @@ router = APIRouter()
 
 APP_KEY, APP_SECRET = getappkey()
 
-# 샘플 데이터 (JS에서 받은 예시를 파이썬 dict 리스트로 변환)
-sampleChartData = [
-    {"time": "090000", "price": 70300, "prdy_vrss": 0, "prdy_ctrt": 0.00, "volume": 150},
-    {"time": "090100", "price": 70500, "prdy_vrss": 200, "prdy_ctrt": 0.28, "volume": 300},
-    {"time": "090200", "price": 70800, "prdy_vrss": 500, "prdy_ctrt": 0.71, "volume": 250},
-    {"time": "090300", "price": 70600, "prdy_vrss": 300, "prdy_ctrt": 0.42, "volume": 200},
-    {"time": "090400", "price": 70700, "prdy_vrss": 400, "prdy_ctrt": 0.57, "volume": 180},
-    {"time": "090500", "price": 70900, "prdy_vrss": 600, "prdy_ctrt": 0.85, "volume": 220},
-    {"time": "090600", "price": 71100, "prdy_vrss": 800, "prdy_ctrt": 1.14, "volume": 190},
-    {"time": "090700", "price": 71000, "prdy_vrss": 700, "prdy_ctrt": 1.00, "volume": 160},
-    {"time": "090800", "price": 71200, "prdy_vrss": 900, "prdy_ctrt": 1.28, "volume": 230},
-]
-
 @router.get("/stock/time-conclusion")
 def get_multiple_stock_conclusions(iscd: str = Query(...)):
     access_token = get_access_token()
