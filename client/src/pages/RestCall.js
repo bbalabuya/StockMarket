@@ -8,11 +8,11 @@ const REST_INFO = (code) => `http://localhost:8000/stock/info?iscd=${code}`;
 
 export default function useStockRest(stockCode) {
   const [chartData, setChartData] = useState([]);
+  const [prevClose, setPrevClose] = useState(null);
   const [stockInfo, setStockInfo] = useState(null);
 
   const marketOpen = isMarketOpen();
 
-  // 주식 시작 시간부터 지금까지 데이터 호출 후 표와 차트로 분리리
   useEffect(() => {
     async function fetchData() {
       try {
@@ -25,10 +25,12 @@ export default function useStockRest(stockCode) {
           price: Number(i.price), // 현재 체결가
           prdy_vrss: i.prdy_vrss, // 어제 대비 변화량
           prdy_ctrt: i.prdy_ctrt, // 퍼센트 수치치
+          volume: Number(i.volume),
         }));
-        setChartData(fmt); //차트용 데이터 세팅
+        console.log(fmt);
+        setChartData(fmt);
+        setPrevClose(fmt[0]?.price ?? null);
 
-        //
         const infoRes = await fetch(REST_INFO(stockCode)).then((r) => r.json());
         setStockInfo(infoRes);
       } catch (err) {
@@ -41,6 +43,7 @@ export default function useStockRest(stockCode) {
 
   return {
     chartData,
+    prevClose,
     stockInfo,
     marketOpen,
   };
